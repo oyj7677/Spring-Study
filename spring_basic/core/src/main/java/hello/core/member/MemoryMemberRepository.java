@@ -1,9 +1,12 @@
 package hello.core.member;
 
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class MemoryMemberRepository implements MemberRepository{
+@Component
+public class MemoryMemberRepository implements MemberRepository {
 
     // HashMap 동시성 이슈가 발생할 수 있다.
     private static Map<Long, Member> store = new HashMap<>();
