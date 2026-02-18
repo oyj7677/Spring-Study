@@ -3,6 +3,8 @@ package hello.core.scope;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Scope;
 
@@ -32,47 +34,24 @@ public class SingletonWithPrototypeTest1 {
         int count1 = clientBean1.logic();
         assertThat(count1).isEqualTo(1);
 
-        // 프로토 타입이 유지되었다.
-        // 일회성으로 사용하려는 prototype인데 singleton 스코프의 bean에 의존되어 prototype bean이 유지되고 같은 걸 사용하게 되는 문제점이 있다.
-        // 원치않는 결과
         ClientBean clientBean2 = ac.getBean(ClientBean.class);
         int count2 = clientBean2.logic();
-        assertThat(count2).isEqualTo(2);
-
+        assertThat(count2).isEqualTo(1);
     }
 
     @Scope("singleton")
     static class ClientBean {
-        private final PrototypeBean prototypeBean;
-
-        // prototypeBean @x01
-        public ClientBean(PrototypeBean prototypeBean) {
-            this.prototypeBean = prototypeBean;
-        }
+        @Autowired
+        private ObjectProvider<PrototypeBean> prototypeBeanProvider;
 
         public int logic() {
+            PrototypeBean prototypeBean = prototypeBeanProvider.getObject();
             prototypeBean.addCount();
             int count = prototypeBean.getCount();
             return count;
         }
     }
 
-    @Scope("singleton")
-    static class ClientBean2 {
-        private final PrototypeBean prototypeBean;
-
-        // prototypeBean @x02
-        public ClientBean2(PrototypeBean prototypeBean) {
-            this.prototypeBean = prototypeBean;
-        }
-
-        public int logic() {
-            prototypeBean.addCount();
-            int count = prototypeBean.getCount();
-            return count;
-        }
-    }
-    
     @Scope("prototype")
     static class PrototypeBean {
         private int count = 0;
